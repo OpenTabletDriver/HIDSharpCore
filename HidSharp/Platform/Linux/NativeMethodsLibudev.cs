@@ -82,9 +82,13 @@ namespace HidSharp.Platform.Linux
 
         public abstract IntPtr udev_enumerate_get_list_entry(IntPtr enumerate);
 
+        public abstract IntPtr udev_list_entry_get_by_name(IntPtr entry, string name);
+
         public abstract IntPtr udev_list_entry_get_next(IntPtr entry);
 
         public abstract string udev_list_entry_get_name(IntPtr entry);
+        
+        public abstract string udev_list_entry_get_value(IntPtr entry);
 
         public abstract IntPtr udev_device_new_from_syspath(IntPtr udev, string syspath);
 
@@ -96,7 +100,18 @@ namespace HidSharp.Platform.Linux
 
         public abstract string udev_device_get_devpath(IntPtr device);
 
+        public abstract string udev_device_get_devtype(IntPtr device);
+
+        public abstract IntPtr udev_device_get_properties_list_entry(IntPtr entry);
+
+        public abstract string udev_device_get_syspath(IntPtr device);
+
+        public abstract string udev_device_get_subsystem(IntPtr device);
+
+        public abstract IntPtr udev_device_get_parent(IntPtr device);
+
         public abstract IntPtr udev_device_get_parent_with_subsystem_devtype(IntPtr device, string subsystem, string devtype);
+        public abstract IntPtr udev_device_get_parent_with_subsystem(IntPtr device, string subsystem);
 
         public abstract string udev_device_get_sysattr_value(IntPtr device, string sysattr);
 

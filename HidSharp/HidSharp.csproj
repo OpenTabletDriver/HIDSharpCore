@@ -17,4 +17,13 @@
     <Copyright>Copyright 2010-2019 James Bellinger</Copyright>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <PackageId>HidSharTestyThingy</PackageId>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>hidsharp_list</RootNamespace>
+    <!-- <ImplicitUsings>enable</ImplicitUsings> -->
+    <!-- <Nullable>enable</Nullable> -->
+  </PropertyGroup>
+
 </Project>

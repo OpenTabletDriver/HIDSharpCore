@@ -56,25 +56,104 @@ namespace HidSharp.Platform.Linux
                     IntPtr device = NativeMethodsLibudev.Instance.udev_device_new_from_syspath(udev, d._path);
                     if (device != IntPtr.Zero)
                     {
+                        string d_manufacturer = NativeMethodsLibudev.Instance.udev_device_get_sysattr_value(device, "manufacturer");
+                        string d_productName = NativeMethodsLibudev.Instance.udev_device_get_sysattr_value(device, "product");
+                        string d_serialNumber = NativeMethodsLibudev.Instance.udev_device_get_sysattr_value(device, "serial");
+                        string d_idVendor = NativeMethodsLibudev.Instance.udev_device_get_sysattr_value(device, "idVendor");
+                        string d_idProduct = NativeMethodsLibudev.Instance.udev_device_get_sysattr_value(device, "idProduct");
+                        string d_bcdDevice = NativeMethodsLibudev.Instance.udev_device_get_sysattr_value(device, "bcdDevice");
+                        Console.WriteLine();
+                        string syspath = NativeMethodsLibudev.Instance.udev_device_get_syspath(device);
+                        string devnode = NativeMethodsLibudev.Instance.udev_device_get_devnode(device);
+                        Console.WriteLine("device " + devnode + " found device with " + d_manufacturer + d_productName + d_idVendor + d_idProduct);
                         try
                         {
-                            string devnode = NativeMethodsLibudev.Instance.udev_device_get_devnode(device);
                             if (devnode != null)
                             {
                                 d._fileSystemName = devnode;
+                                IntPtr parent = IntPtr.Zero;
+                                string parent_subsystem = null;
 
                                 //if (NativeMethodsLibudev.Instance.udev_device_get_is_initialized(device) > 0)
                                 {
-                                    IntPtr parent = NativeMethodsLibudev.Instance.udev_device_get_parent_with_subsystem_devtype(device, "usb", "usb_device");
-                                    if (IntPtr.Zero != parent)
-                                    {
-                                        string manufacturer = NativeMethodsLibudev.Instance.udev_device_get_sysattr_value(parent, "manufacturer");
-                                        string productName = NativeMethodsLibudev.Instance.udev_device_get_sysattr_value(parent, "product");
-                                        string serialNumber = NativeMethodsLibudev.Instance.udev_device_get_sysattr_value(parent, "serial");
-                                        string idVendor = NativeMethodsLibudev.Instance.udev_device_get_sysattr_value(parent, "idVendor");
-                                        string idProduct = NativeMethodsLibudev.Instance.udev_device_get_sysattr_value(parent, "idProduct");
-                                        string bcdDevice = NativeMethodsLibudev.Instance.udev_device_get_sysattr_value(parent, "bcdDevice");
+                                    /// show information for all parent devices
+                                    IntPtr p = device;
+                                    string devtype = "";
+                                    string subsystem = "";
+                                    string p_syspath = "";
+                                    string p_devnode = "";
+                                    while (p != IntPtr.Zero) {
+                                        Console.WriteLine("device " + devnode + " parent " + p + " getting parent of: " + p);
+                                        p = NativeMethodsLibudev.Instance.udev_device_get_parent(p);
+                                        devtype = NativeMethodsLibudev.Instance.udev_device_get_devtype(p);
+                                        subsystem = NativeMethodsLibudev.Instance.udev_device_get_subsystem(p);
+                                        p_syspath = NativeMethodsLibudev.Instance.udev_device_get_syspath(p);
+                                        p_devnode = NativeMethodsLibudev.Instance.udev_device_get_devnode(p);
+                                        // Console.WriteLine("device " + devnode + " parent " + p + " p_syspath is " + p_syspath);
+                                        // Console.WriteLine("device " + devnode + " parent " + p + " p_devnode is " + p_devnode);
+                                        Console.WriteLine("device " + devnode + " parent " + p + " subsystem/devtpye is " + subsystem + "/" + devtype);
+                                        // IntPtr entry = NativeMethodsLibudev.Instance.udev_device_get_properties_list_entry(p);
+                                        // while (entry != IntPtr.Zero) {
+                                        //     string name = NativeMethodsLibudev.Instance.udev_list_entry_get_name(entry);
+                                        //     string value = NativeMethodsLibudev.Instance.udev_list_entry_get_value(entry);
+                                        //     entry = NativeMethodsLibudev.Instance.udev_list_entry_get_next(entry);
+                                        //     Console.WriteLine("device " + devnode + " parent " + p + " properties " + name + " = " + value);
+                                        // }
+                                    }
 
+
+                                    Console.WriteLine("device " + devnode + " parent is " + parent + " with subsystem " + parent_subsystem);
+
+                                    // aquire a parent of the hid subsystem, which my pth-660 has when connected to my on my lenovo x13 via bluetooth
+                                    // maybe take the one that comes first when recursing into the parents
+                                    IntPtr parent_hid = NativeMethodsLibudev.Instance.udev_device_get_parent_with_subsystem(device, "hid");
+                                    IntPtr parent_usb = NativeMethodsLibudev.Instance.udev_device_get_parent_with_subsystem_devtype(device, "usb", "usb_device");
+
+                                    Console.WriteLine("device " + devnode + " parent_hid is " + parent_hid);
+                                    Console.WriteLine("device " + devnode + " parent_usb is " + parent_usb);
+
+                                    string manufacturer = "unknown";
+                                    string productName = "unknown";
+                                    string serialNumber = "unknown";
+                                    string idVendor = "0";
+                                    string idProduct = "0";
+                                    string bcdDevice = "0";
+
+                                    if (IntPtr.Zero != parent_usb) {
+                                        manufacturer = NativeMethodsLibudev.Instance.udev_device_get_sysattr_value(parent_usb, "manufacturer");
+                                        productName = NativeMethodsLibudev.Instance.udev_device_get_sysattr_value(parent_usb, "product");
+                                        serialNumber = NativeMethodsLibudev.Instance.udev_device_get_sysattr_value(parent_usb, "serial");
+                                        idVendor = NativeMethodsLibudev.Instance.udev_device_get_sysattr_value(parent_usb, "idVendor");
+                                        idProduct = NativeMethodsLibudev.Instance.udev_device_get_sysattr_value(parent_usb, "idProduct");
+                                        bcdDevice = NativeMethodsLibudev.Instance.udev_device_get_sysattr_value(parent_usb, "bcdDevice");
+                                    }
+                                    // add information to bluetooth devices
+                                    if (IntPtr.Zero != parent_hid) {
+                                        IntPtr entry2 = NativeMethodsLibudev.Instance.udev_device_get_properties_list_entry(parent_hid);
+                                        while (entry2 != IntPtr.Zero) {
+                                            string name = NativeMethodsLibudev.Instance.udev_list_entry_get_name(entry2);
+                                            string value = NativeMethodsLibudev.Instance.udev_list_entry_get_value(entry2);
+                                            entry2 = NativeMethodsLibudev.Instance.udev_list_entry_get_next(entry2);
+                                            Console.WriteLine("device " + devnode + " parent " + p + " properties " + name + " = " + value);
+                                            switch (name) {
+                                                case "HID_NAME":
+                                                    if (productName == "unknown") {
+                                                        productName = value;
+                                                    }
+                                                break;
+                                                case "HID_ID":
+                                                    string[] idParts = value.Split(":");
+                                                    if (idVendor == "0") {
+                                                        idVendor = idParts[1];
+                                                    }
+                                                    if (idProduct == "0") {
+                                                        idProduct = idParts[2];
+                                                    }
+                                                break;
+                                            }
+                                        }
+                                    }
+                                    if (IntPtr.Zero != parent_hid || IntPtr.Zero != parent_usb) {
                                         int vid, pid, version;
                                         if (NativeMethods.TryParseHex(idVendor, out vid) &&
                                             NativeMethods.TryParseHex(idProduct, out pid) &&
