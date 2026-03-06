@@ -76,17 +76,18 @@ namespace HidSharp.Platform.MacOS
 
                     using (var elementArray = NativeMethods.IOHIDDeviceCopyMatchingElements(device, IntPtr.Zero).ToCFType())
                     {
-                        if (!elementArray.IsSet) { return null; }
-
-                        int elementCount = checked((int)NativeMethods.CFArrayGetCount(elementArray));
-                        for (int elementIndex = 0; elementIndex < elementCount; elementIndex++)
+                        if (elementArray.IsSet)
                         {
-                            var element = NativeMethods.CFArrayGetValueAtIndex(elementArray, (IntPtr)elementIndex);
-                            if (element == IntPtr.Zero) { continue; }
-
-                            if (NativeMethods.IOHIDElementGetReportID(element) != 0)
+                            int elementCount = checked((int)NativeMethods.CFArrayGetCount(elementArray));
+                            for (int elementIndex = 0; elementIndex < elementCount; elementIndex++)
                             {
-                                d._reportsUseID = true;
+                                var element = NativeMethods.CFArrayGetValueAtIndex(elementArray, (IntPtr)elementIndex);
+                                if (element == IntPtr.Zero) { continue; }
+
+                                if (NativeMethods.IOHIDElementGetReportID(element) != 0)
+                                {
+                                    d._reportsUseID = true;
+                                }
                             }
                         }
                     }
