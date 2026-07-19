@@ -69,40 +69,25 @@ namespace HidSharp.Platform.MacOS
                 if (d._maxInput == 0 && d._maxOutput == 0 && d._maxFeature == 0) { return null; }
 
                 // Does this device use Report IDs? Let's find out.
-                d._reportsUseID = false; bool hasInput = false, hasOutput = false, hasFeature = false;
+                d._reportsUseID = false;
                 using (var device = NativeMethods.IOHIDDeviceCreate(IntPtr.Zero, service).ToCFType())
                 {
                     if (!device.IsSet) { return null; }
 
                     using (var elementArray = NativeMethods.IOHIDDeviceCopyMatchingElements(device, IntPtr.Zero).ToCFType())
                     {
-                        if (!elementArray.IsSet) { return null; }
-
-                        int elementCount = checked((int)NativeMethods.CFArrayGetCount(elementArray));
-                        for (int elementIndex = 0; elementIndex < elementCount; elementIndex++)
+                        if (elementArray.IsSet)
                         {
-                            var element = NativeMethods.CFArrayGetValueAtIndex(elementArray, (IntPtr)elementIndex);
-                            if (element == IntPtr.Zero) { continue; }
-
-                            var elementType = NativeMethods.IOHIDElementGetType(element);
-                            switch (elementType)
+                            int elementCount = checked((int)NativeMethods.CFArrayGetCount(elementArray));
+                            for (int elementIndex = 0; elementIndex < elementCount; elementIndex++)
                             {
-                                case NativeMethods.IOHIDElementType.InputMisc:
-                                case NativeMethods.IOHIDElementType.InputButton:
-                                case NativeMethods.IOHIDElementType.InputAxis:
-                                case NativeMethods.IOHIDElementType.InputScanCodes:
-                                    hasInput = true; break;
+                                var element = NativeMethods.CFArrayGetValueAtIndex(elementArray, (IntPtr)elementIndex);
+                                if (element == IntPtr.Zero) { continue; }
 
-                                case NativeMethods.IOHIDElementType.Output:
-                                    hasOutput = true; break;
-
-                                case NativeMethods.IOHIDElementType.Feature:
-                                    hasFeature = true; break;
-                            }
-
-                            if (NativeMethods.IOHIDElementGetReportID(element) != 0)
-                            {
-                                d._reportsUseID = true;
+                                if (NativeMethods.IOHIDElementGetReportID(element) != 0)
+                                {
+                                    d._reportsUseID = true;
+                                }
                             }
                         }
                     }
@@ -116,9 +101,6 @@ namespace HidSharp.Platform.MacOS
                     if (d._maxFeature != 0) { d._maxFeature++; }
                 }
 
-                if (!hasInput) { d._maxInput = 0; }
-                if (!hasOutput) { d._maxOutput = 0; }
-                if (!hasFeature) { d._maxFeature = 0; }
             }
 
             return d;
