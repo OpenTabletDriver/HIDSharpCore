@@ -32,18 +32,18 @@ namespace HidSharp.Platform.MacOS
         int _maxInput, _maxOutput, _maxFeature;
         bool _reportsUseID;
         byte[] _reportDescriptor;
-        NativeMethods.io_string_t _path;
+        string _path;
 
         MacHidDevice()
         {
 
         }
 
-        internal static MacHidDevice TryCreate(NativeMethods.io_string_t path)
+        internal static MacHidDevice TryCreate(string path)
         {
             var d = new MacHidDevice() { _path = path };
 
-            var service = NativeMethods.IORegistryEntryFromPath(0, ref path).ToIOObject();
+            var service = NativeMethods.IORegistryEntryCopyFromPath(0, path).ToIOObject();
             if (!service.IsSet) { return null; }
 
             using (service)
@@ -279,7 +279,8 @@ namespace HidSharp.Platform.MacOS
             }
 
             // Determine USB device from HID path
-            var hidEntry = NativeMethods.IORegistryEntryFromPath(masterPort, ref _path).ToIOObject();
+            var hidEntry = NativeMethods.IORegistryEntryCopyFromPath(masterPort, _path).ToIOObject();
+
             int deviceEntry = 0;
 
             if (hidEntry.IsSet)
@@ -301,7 +302,7 @@ namespace HidSharp.Platform.MacOS
 
         public override string DevicePath
         {
-            get { return _path.ToString(); }
+            get { return _path; }
         }
 
         public override int VendorID

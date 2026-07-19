@@ -21,7 +21,7 @@ namespace HidSharp.Platform.MacOS
 {
     sealed class MacSerialDevice : SerialDevice
     {
-        NativeMethods.io_string_t _path;
+        string _path;
         string _fileSystemName;
 
         protected override DeviceStream OpenDeviceDirectly(OpenConfiguration openConfig)
@@ -29,11 +29,11 @@ namespace HidSharp.Platform.MacOS
             return new MacSerialStream(this);
         }
 
-        internal static MacSerialDevice TryCreate(NativeMethods.io_string_t path)
+        internal static MacSerialDevice TryCreate(string path)
         {
             var d = new MacSerialDevice() { _path = path };
 
-            var handle = NativeMethods.IORegistryEntryFromPath(0, ref path).ToIOObject();
+            var handle = NativeMethods.IORegistryEntryCopyFromPath(0, path).ToIOObject();
             if (!handle.IsSet) { return null; }
 
             using (handle)
@@ -57,7 +57,7 @@ namespace HidSharp.Platform.MacOS
 
         public override string DevicePath
         {
-            get { return _path.ToString(); }
+            get { return _path; }
         }
 
         public override bool CanOpen => true;

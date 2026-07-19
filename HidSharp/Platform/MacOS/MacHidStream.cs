@@ -44,13 +44,12 @@ namespace HidSharp.Platform.MacOS
             _writeThread = new Thread(WriteThread) { IsBackground = true, Name = "HID Writer" };
         }
 
-        internal void Init(NativeMethods.io_string_t path)
+        internal void Init(string path)
         {
             IntPtr handle; int retryCount = 0, maxRetries = 10;
             while (true)
             {
-                var newPath = path.Clone();
-                using (var service = NativeMethods.IORegistryEntryFromPath(0, ref newPath).ToIOObject())
+                using (var service = NativeMethods.IORegistryEntryCopyFromPath(0, path).ToIOObject())
                 {
                     string error;
 
@@ -65,16 +64,16 @@ namespace HidSharp.Platform.MacOS
                             NativeMethods.CFRelease(handle);
 
                             // TODO: Only count up if IOReturn is ExclusiveAccess or Offline.
-                            error = string.Format("Unable to open HID class device (error {1}): {0}", newPath.ToString(), ret);
+                            error = string.Format("Unable to open HID class device (error {1}): {0}", path, ret);
                         }
                         else
                         {
-                            error = string.Format("HID class device not found: {0}", newPath.ToString());
+                            error = string.Format("HID class device not found: {0}", path);
                         }
                     }
                     else
                     {
-                        error = string.Format("HID class device path not found: {0}", newPath.ToString());
+                        error = string.Format("HID class device path not found: {0}", path);
                     }
 
                     if (++retryCount == maxRetries)

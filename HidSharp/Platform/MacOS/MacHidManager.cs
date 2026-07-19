@@ -69,7 +69,7 @@ namespace HidSharp.Platform.MacOS
 
         object[] GetDeviceKeys(string kind)
         {
-            var paths = new List<NativeMethods.io_string_t>();
+            var paths = new List<string>();
 
             var matching = NativeMethods.IOServiceMatching(kind).ToCFType(); // Consumed by IOServiceGetMatchingServices, so DON'T Dispose().
             if (matching.IsSet)
@@ -85,10 +85,12 @@ namespace HidSharp.Platform.MacOS
                             {
                                 if (!handle.IsSet) { break; }
 
-                                NativeMethods.io_string_t path;
-                                if (NativeMethods.IOReturn.Success == NativeMethods.IORegistryEntryGetPath(handle, "IOService", out path))
+                                using (var cfPath = NativeMethods.IORegistryEntryCopyPath(handle, "IOService").ToCFType())
                                 {
-                                    paths.Add(path);
+                                    if (cfPath.IsSet)
+                                    {
+                                        paths.Add(NativeMethods.CFStringGetCharacters(cfPath));
+                                    }
                                 }
                             }
                         }
@@ -121,13 +123,13 @@ namespace HidSharp.Platform.MacOS
 
         protected override bool TryCreateHidDevice(object key, out Device device)
         {
-            device = MacHidDevice.TryCreate((NativeMethods.io_string_t)key);
+            device = MacHidDevice.TryCreate((string)key);
             return device != null;
         }
 
         protected override bool TryCreateSerialDevice(object key, out Device device)
         {
-            device = MacSerialDevice.TryCreate((NativeMethods.io_string_t)key);
+            device = MacSerialDevice.TryCreate((string)key);
             return device != null;
         }
 

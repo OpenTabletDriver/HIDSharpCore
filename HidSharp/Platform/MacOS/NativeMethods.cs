@@ -724,6 +724,25 @@ namespace HidSharp.Platform.MacOS
             }
         }
 
+        [DllImport(IOKit, EntryPoint = "IORegistryEntryCopyFromPath")]
+        public static extern int IORegistryEntryCopyFromPath(uint masterPort, IntPtr path);
+
+        public static int IORegistryEntryCopyFromPath(uint masterPort, string path)
+        {
+            var cfPath = CFStringCreateWithCharacters(path);
+            try
+            {
+                return IORegistryEntryCopyFromPath(masterPort, cfPath);
+            }
+            finally
+            {
+                if (cfPath != IntPtr.Zero) { CFRelease(cfPath); }
+            }
+        }
+
+        [DllImport(IOKit, EntryPoint = "IORegistryEntryCopyPath")]
+        public static extern IntPtr IORegistryEntryCopyPath(int entry, [MarshalAs(UnmanagedType.LPStr)] string plane);
+
         [DllImport(IOKit, EntryPoint = "IORegistryEntryFromPath")]
         public static extern int IORegistryEntryFromPath(uint masterPort, ref io_string_t path);
 
