@@ -63,12 +63,15 @@ namespace HidSharp.Reports.Units
 
         /// <summary>
         /// Decodes an encoded HID unit exponent.
+        /// The HID spec defines UnitExponent as a 4-bit signed value (nibble),
+        /// but some devices encode it as a signed byte (e.g. 0xFD for -3).
+        /// Masking to 4 bits handles both encodings correctly.
         /// </summary>
         /// <param name="value">The encoded exponent.</param>
         /// <returns>The exponent.</returns>
         public static int DecodeExponent(uint value)
         {
-            if (value > 15) { throw new ArgumentOutOfRangeException("value", "Value range is [0, 15]."); }
+            value &= 0xF;
             return value >= 8 ? (int)value - 16 : (int)value;
         }
 
