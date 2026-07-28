@@ -138,6 +138,14 @@ namespace HidSharp.Platform.Linux
             return native_udev_enumerate_get_list_entry(enumerate);
         }
 
+        [DllImport(libudev, EntryPoint = "udev_list_entry_get_by_name")]
+        static extern IntPtr native_udev_list_entry_get_by_name(IntPtr entry,
+            [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(Utf8Marshaler))] string name);
+        public override IntPtr udev_list_entry_get_by_name(IntPtr entry, string name)
+        {
+            return native_udev_list_entry_get_by_name(entry, name);
+        }
+
         [DllImport(libudev, EntryPoint = "udev_list_entry_get_next")]
         static extern IntPtr native_udev_list_entry_get_next(IntPtr entry);
         public override IntPtr udev_list_entry_get_next(IntPtr entry)
@@ -151,6 +159,14 @@ namespace HidSharp.Platform.Linux
         public override string udev_list_entry_get_name(IntPtr entry)
         {
             return native_udev_list_entry_get_name(entry);
+        }
+
+        [DllImport(libudev, EntryPoint = "udev_list_entry_get_value")]
+        [return: MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(Utf8Marshaler))]
+        static extern string native_udev_list_entry_get_value(IntPtr entry);
+        public override string udev_list_entry_get_value(IntPtr entry)
+        {
+            return native_udev_list_entry_get_value(entry);
         }
 
         [DllImport(libudev, EntryPoint = "udev_device_new_from_syspath")]
@@ -191,6 +207,44 @@ namespace HidSharp.Platform.Linux
             return native_udev_device_get_devpath(device);
         }
 
+        [DllImport(libudev, EntryPoint = "udev_device_get_devtype")]
+        [return: MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(Utf8Marshaler))]
+        static extern string native_udev_device_get_devtype(IntPtr device);
+        public override string udev_device_get_devtype(IntPtr device)
+        {
+            return native_udev_device_get_devtype(device);
+        }
+
+        [DllImport(libudev, EntryPoint = "udev_device_get_properties_list_entry")]
+        static extern IntPtr native_udev_device_get_properties_list_entry(IntPtr entry);
+        public override IntPtr udev_device_get_properties_list_entry(IntPtr entry)
+        {
+            return native_udev_device_get_properties_list_entry(entry);
+        }
+
+        [DllImport(libudev, EntryPoint = "udev_device_get_syspath")]
+        [return: MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(Utf8Marshaler))]
+        static extern string native_udev_device_get_syspath(IntPtr device);
+        public override string udev_device_get_syspath(IntPtr device)
+        {
+            return native_udev_device_get_syspath(device);
+        }
+
+        [DllImport(libudev, EntryPoint = "udev_device_get_subsystem")]
+        [return: MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(Utf8Marshaler))]
+        static extern string native_udev_device_get_subsystem(IntPtr device);
+        public override string udev_device_get_subsystem(IntPtr device)
+        {
+            return native_udev_device_get_subsystem(device);
+        }
+
+        [DllImport(libudev, EntryPoint = "udev_device_get_parent")]
+        static extern IntPtr native_udev_device_get_parent(IntPtr device);
+        public override IntPtr udev_device_get_parent(IntPtr device)
+        {
+            return native_udev_device_get_parent(device);
+        }
+
         [DllImport(libudev, EntryPoint = "udev_device_get_parent_with_subsystem_devtype")]
         static extern IntPtr native_udev_device_get_parent_with_subsystem_devtype(IntPtr device,
             [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(Utf8Marshaler))] string subsystem,
@@ -198,6 +252,18 @@ namespace HidSharp.Platform.Linux
         public override IntPtr udev_device_get_parent_with_subsystem_devtype(IntPtr device, string subsystem, string devtype)
         {
             return native_udev_device_get_parent_with_subsystem_devtype(device, subsystem, devtype);
+        }
+
+        [DllImport(libudev, EntryPoint = "udev_device_get_parent_with_subsystem_devtype")]
+        static extern IntPtr native_udev_device_get_parent_with_subsystem(IntPtr device,
+            [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(Utf8Marshaler))] string subsystem
+            // ,[MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(System.IntPtr))] IntPtr devtype
+            );
+        public override IntPtr udev_device_get_parent_with_subsystem(IntPtr device, string subsystem)
+        {
+            return native_udev_device_get_parent_with_subsystem(device, subsystem
+            // , IntPtr.Zero
+            );
         }
 
         [DllImport(libudev, EntryPoint = "udev_device_get_sysattr_value")]
