@@ -16,6 +16,7 @@
 #endregion
 
 using System;
+using System.Globalization;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -90,6 +91,26 @@ namespace HidSharp.Platform.Linux
                                             return d;
                                         }
                                     }
+
+                                    // Devices without USB parents expose their identity through HID udev properties.
+                                    IntPtr hidParent = NativeMethodsLibudev.Instance.udev_device_get_parent_with_subsystem_devtype(device, "hid", null);
+                                    if (IntPtr.Zero != hidParent)
+                                    {
+                                        string hidId = NativeMethodsLibudev.Instance.udev_device_get_property_value(hidParent, "HID_ID");
+
+                                        int vid, pid;
+                                        if (TryParseHidId(hidId, out vid, out pid))
+                                        {
+                                            d._vid = vid;
+                                            d._pid = pid;
+                                            d._version = 0;
+                                            d._manufacturer = null;
+                                            d._productName = NativeMethodsLibudev.Instance.udev_device_get_property_value(hidParent, "HID_NAME");
+                                            d._serialNumber = null;
+
+                                            return d;
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -106,6 +127,26 @@ namespace HidSharp.Platform.Linux
             }
 
             return null;
+        }
+
+        static bool TryParseHidId(string hidId, out int vid, out int pid)
+        {
+            vid = 0;
+            pid = 0;
+
+            if (hidId == null) { return false; }
+
+            int vendorStart = hidId.IndexOf(':');
+            if (vendorStart < 0) { return false; }
+            vendorStart++;
+
+            int productStart = hidId.IndexOf(':', vendorStart);
+            if (productStart < 0 || productStart == hidId.Length - 1) { return false; }
+
+            return int.TryParse(hidId.AsSpan(vendorStart, productStart - vendorStart),
+                                NumberStyles.HexNumber, CultureInfo.InvariantCulture, out vid) &&
+                   int.TryParse(hidId.AsSpan(productStart + 1),
+                                NumberStyles.HexNumber, CultureInfo.InvariantCulture, out pid);
         }
 
         protected override DeviceStream OpenDeviceDirectly(OpenConfiguration openConfig)
@@ -282,10 +323,14 @@ namespace HidSharp.Platform.Linux
         {
             using (var udev = new SafeUdevHandle(NativeMethodsLibudev.Instance.udev_new()))
             {
-                var handle = NativeMethodsLibudev.Instance.udev_device_new_from_syspath(udev.DangerousGetHandle(), _path);
-                using (var parent = new SafeUdevDeviceHandle(NativeMethodsLibudev.Instance.udev_device_get_parent_with_subsystem_devtype(handle, "usb", "usb_device")))
+                var devicePtr = NativeMethodsLibudev.Instance.udev_device_new_from_syspath(udev.DangerousGetHandle(), _path);
+                using (var device = new SafeUdevDeviceHandle(devicePtr))
                 {
-                    var parentPtr = parent.DangerousGetHandle();
+                    if (device.IsInvalid) { throw DeviceException.CreateIOException(this, "Failed to find device in udev."); }
+
+                    var parentPtr = NativeMethodsLibudev.Instance.udev_device_get_parent_with_subsystem_devtype(
+                        device.DangerousGetHandle(), "usb", "usb_device");
+                    if (parentPtr == IntPtr.Zero) { throw DeviceException.CreateIOException(this, "Device has no USB parent."); }
 
                     string devNum = NativeMethodsLibudev.Instance.udev_device_get_sysattr_value(parentPtr, "devnum");
                     string busNum = NativeMethodsLibudev.Instance.udev_device_get_sysattr_value(parentPtr, "busnum");

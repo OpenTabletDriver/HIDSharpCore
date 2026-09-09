@@ -101,5 +101,7 @@ namespace HidSharp.Platform.Linux
         public abstract string udev_device_get_sysattr_value(IntPtr device, string sysattr);
 
         public abstract int udev_device_get_is_initialized(IntPtr device);
+
+        public abstract string udev_device_get_property_value(IntPtr device, string key);
     }
 }
