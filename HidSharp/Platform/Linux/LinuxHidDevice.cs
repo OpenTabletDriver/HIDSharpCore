@@ -136,16 +136,13 @@ namespace HidSharp.Platform.Linux
 
             if (hidId == null) { return false; }
 
-            int vendorStart = hidId.IndexOf(':');
-            if (vendorStart < 0) { return false; }
-            vendorStart++;
+            // HID_ID is BUS:VID:PID.
+            string[] fields = hidId.Split(':');
+            if (fields.Length != 3) { return false; }
 
-            int productStart = hidId.IndexOf(':', vendorStart);
-            if (productStart < 0 || productStart == hidId.Length - 1) { return false; }
-
-            return int.TryParse(hidId.AsSpan(vendorStart, productStart - vendorStart),
+            return int.TryParse(fields[1],
                                 NumberStyles.HexNumber, CultureInfo.InvariantCulture, out vid) &&
-                   int.TryParse(hidId.AsSpan(productStart + 1),
+                   int.TryParse(fields[2],
                                 NumberStyles.HexNumber, CultureInfo.InvariantCulture, out pid);
         }
 
